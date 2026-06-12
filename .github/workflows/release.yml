@@ -1,0 +1,54 @@
+name: Automated Cross-Platform Release
+
+on:
+  push:
+    branches:
+      - main
+
+# Give the workflow permission to create and write releases
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build Binaries and Create Release
+    runs-on: ubuntu-latest # Runs inside a Linux cloud VM
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go Engine
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+
+      - name: Execute Build Script
+        run: |
+          chmod +x build.sh
+          ./build.sh
+
+      # Generate a unique dynamic version tag using the run number
+      - name: Generate Version Tag
+        id: tag
+        run: echo "VERSION=v1.0.${{ github.run_number }}" >> $GITHUB_ENV
+
+      # Automatically bundle the binaries and publish the GitHub Release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.VERSION }}
+          name: Release ${{ steps.tag.outputs.VERSION }}
+          body: |
+            Automated production build for `devops-monitor` CLI tool.
+
+            ### Installation:
+            Download the binary matching your operating system, rename it to `devops-monitor`, and add it to your system PATH.
+          draft: false
+          prerelease: false
+          # Tell GitHub exactly which files from your /bin folder to attach to the release page
+          files: |
+            bin/devops-monitor-windows-amd64.exe
+            bin/devops-monitor-linux-amd64
+            bin/devops-monitor-darwin-amd64
+            bin/devops-monitor-darwin-arm64
