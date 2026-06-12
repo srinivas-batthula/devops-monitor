@@ -29,16 +29,28 @@ jobs:
           ./build.sh
 
       # Generate a unique dynamic version tag using the run number
-      - name: Generate Version Tag
-        id: tag
-        run: echo "VERSION=v1.0.${{ github.run_number }}" >> $GITHUB_ENV
+      - name: Create and Push Git Tag
+        id: create_tag # We need this ID to reference this step's outputs later
+        run: |
+          VERSION="v1.0.${{ github.run_number }}"
+
+          # 1. Save the version to the step output dictionary
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Configure dummy git user
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+          # Create and push tag
+          git tag $VERSION
+          git push origin $VERSION
 
       # Automatically bundle the binaries and publish the GitHub Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.VERSION }}
-          name: Release ${{ steps.tag.outputs.VERSION }}
+          tag_name: ${{ steps.create_tag.outputs.version }}
+          name: Release ${{ steps.create_tag.outputs.version }}
           body: |
             Automated production build for `devops-monitor` CLI tool.
 
