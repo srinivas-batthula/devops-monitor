@@ -1,0 +1,21 @@
+name: devops-monitor
+base: core22
+version: '1.0.2' 
+summary: Cross-platform concurrent DevOps monitoring CLI utility.
+description: |
+  A lightweight CLI tool written in Go that concurrently orchestrates host 
+  telemetry tracking, native Docker states, and localized Kubernetes metrics.
+
+grade: stable
+confinement: classic # Classic gives our monitoring tool access to systemic host resources
+
+apps:
+  devops-monitor:
+    command: devops-monitor
+    plugs: [network, network-bind, system-observe]
+
+parts:
+  devops-monitor:
+    plugin: go
+    source: .
+    go-channel: 1.24/stable

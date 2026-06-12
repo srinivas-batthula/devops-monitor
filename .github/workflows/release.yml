@@ -64,3 +64,19 @@ jobs:
             bin/devops-monitor-linux-amd64
             bin/devops-monitor-darwin-amd64
             bin/devops-monitor-darwin-arm64
+
+  publish-snap:
+    name: Build and Publish Linux Snap Package
+    runs-on: ubuntu-latest
+    needs: build-and-release
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Publish to Snap Store
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: .
+          release: stable
