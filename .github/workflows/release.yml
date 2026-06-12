@@ -73,15 +73,24 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # 1. This action installs snapcraft AND sets up the environment safely
+      # 1. Install snapcraft and compile the .snap file
       - name: Install and Build Snap
         uses: samuelmeuli/action-snapcraft@v3
 
-      # 2. Securely upload the generated package file to the stable store channel
+      # 2. Extract the true dynamic filename of the generated snap package
+      - name: Find Built Snap Filename
+        id: snap_finder
+        run: |
+          # Finds the actual filename (e.g., devops-monitor_1.0.3_amd64.snap)
+          SNAP_FILE=$(ls devops-monitor_*.snap | head -n 1)
+          echo "snap_path=$SNAP_FILE" >> $GITHUB_OUTPUT
+          echo "Found compiled snap package: $SNAP_FILE"
+
       - name: Publish to Snap Store
         uses: snapcore/action-publish@v1
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
-          snap: "*.snap"
+          # Pass the explicit filename variable we just discovered
+          snap: ${{ steps.snap_finder.outputs.snap_path }}
           release: stable
