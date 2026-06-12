@@ -73,20 +73,15 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Install Snapcraft
+      # 1. This action installs snapcraft AND sets up the environment safely
+      - name: Install and Build Snap
         uses: samuelmeuli/action-snapcraft@v3
 
-      # 2. Compile and package your Go code into a compressed .snap file
-      # This outputs a file named something like "devops-monitor_1.0.2_amd64.snap"
-      - name: Build Snap Package
-        run: |
-          sg lxd -c "snapcraft"
-
+      # 2. Securely upload the generated package file to the stable store channel
       - name: Publish to Snap Store
         uses: snapcore/action-publish@v1
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
-          # Using a wildcard (*) tells the action to look for the built file instead of the directory
           snap: "*.snap"
           release: stable
